@@ -6,18 +6,20 @@ requests.packages.urllib3.disable_warnings()
 # create a function to get the token required for future API requests. Need to pass MDS that hosts the domain, username and password when called
 # This function will be called by other scripts to generate the token for authentication
 def get_auth_sid(mds_ip, user, password, domain):
-    
+    print("Getting authentication token for user: " + user + " on MDS: " + mds_ip + "domain" + domain)
     # create global object to store SID
     global sid
     
     # configure request parameters
-    payload = '{"user": "' + user + '", "password": "' + password + '", "domain": "' + domain + '"}'
+    payload = {"user": user, "password": password}
+    if domain:
+        payload["domain"] = domain
     url = 'https://' + mds_ip + '/web_api/login'
     request_headers = {'Content-Type': 'application/json'}
     
     # Attempt to make a POST request to the specified URL
     try:
-        response = requests.post(url, data=payload, headers=request_headers, verify=False)
+        response = requests.post(url, json=payload, headers=request_headers, verify=False)
         
         # Check if the request was successful
         response.raise_for_status()  # This will raise an HTTPError for bad responses (4xx or 5xx)
@@ -27,6 +29,7 @@ def get_auth_sid(mds_ip, user, password, domain):
         
         # capture the sid variable
         sid = auth_data['sid']
+        print ("setting global SID variable to: " + sid)
 
     except requests.exceptions.HTTPError as http_err:
         # Handle HTTP errors
